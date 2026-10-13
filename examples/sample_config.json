@@ -1,0 +1,79 @@
+{
+  "plan": {
+    "plan_name": "Claude Max 5x (sample)",
+    "quota_period": "weekly",
+    "quota_limit_tokens": 2000000,
+    "used_tokens": 1450000,
+    "premium_usd_equivalent_per_mtok": 15.0,
+    "local_tok_per_sec": 40.0
+  },
+  "default_tier": "high",
+  "rules": [
+    {
+      "name": "security-and-auth",
+      "tier": "high",
+      "any_keyword": ["auth", "security", "credential", "secret", "token", "permission"],
+      "notes": "never offload anything touching trust boundaries"
+    },
+    {
+      "name": "data-migrations",
+      "tier": "high",
+      "any_keyword": ["migration", "schema", "irreversible", "delete", "production"],
+      "path_glob": "**/migrations/**"
+    },
+    {
+      "name": "mechanical-tests",
+      "tier": "low",
+      "any_keyword": ["write tests", "unit test", "test fixture", "docstring", "rename"],
+      "path_glob": "tests/**"
+    },
+    {
+      "name": "docs-and-comments",
+      "tier": "low",
+      "any_keyword": ["readme", "docs", "comment", "typo", "changelog"]
+    },
+    {
+      "name": "boilerplate",
+      "tier": "low",
+      "path_glob": "scripts/**"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "description": "Write unit tests for the retry helper",
+      "path": "tests/test_retry.py",
+      "est_tokens": 12000
+    },
+    {
+      "id": "T2",
+      "description": "Fix README typos and add changelog entry",
+      "path": "README.md",
+      "est_tokens": 3000
+    },
+    {
+      "id": "T3",
+      "description": "Review the auth permission checks in the login flow",
+      "path": "src/auth/login.py",
+      "est_tokens": 18000
+    },
+    {
+      "id": "T4",
+      "description": "Draft docstrings for the public API surface",
+      "path": "src/api/public.py",
+      "est_tokens": 6000
+    },
+    {
+      "id": "T5",
+      "description": "Plan the production database migration for the new schema",
+      "path": "db/migrations/007_users.py",
+      "est_tokens": 22000
+    },
+    {
+      "id": "T6",
+      "description": "Update the build script boilerplate for the new toolchain",
+      "path": "scripts/build.sh",
+      "est_tokens": 4000
+    }
+  ]
+}

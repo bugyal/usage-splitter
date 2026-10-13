@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "usage-splitter"
+version = "0.1.0"
+description = "Subscription quota offload router: classify queued tasks by stakes, run low-stakes work on cheap/local capacity, merge back for premium review"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "bugyal coding" }]
+keywords = ["ai", "quota", "subscription", "offload", "ollama", "claude"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+usage-splitter = "usage_splitter.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/bugyal/usage-splitter"
+
+[tool.setuptools.packages.find]
+where = ["src"]
