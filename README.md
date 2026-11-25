@@ -1,33 +1,69 @@
 # usage-splitter — subscription quota offload router
 
-You are on a capped plan (Max 5x/20x, API credits) with a spare laptop
-gathering dust. Some of your queued work is mechanical — tests, docs,
-boilerplate — and some of it touches auth, migrations, production.
-`usage-splitter` splits the queue by stakes, so premium quota goes to the
-work that needs it and the mechanical work runs on cheap/local capacity —
-with a manifest of what ran where, and a merge-back packet so the premium
-model reviews what came back.
+**You are burning premium quota on work that does not need it.** On a capped
+plan (Max 5x/20x, API credits) with a spare laptop gathering dust, the
+queue is a mix: mechanical work (tests, docs, boilerplate) that any local
+model could do, and work that genuinely needs the premium model (auth,
+migrations, production). `usage-splitter` splits the queue by stakes —
+classify, offload the low-stakes work to free/local capacity, merge the
+results back for premium-model review — so the premium quota goes to the
+work that earns it.
 
-This is the workflow from the first splitting-evidence post: offload "extra
-work" to a free/local model, submit results back for merge/approval, spend
-premium quota "more on important things".
+This is the workflow from the first splitting-evidence post: offload
+"extra work" to a free/local model, submit results back for merge/approval,
+spend premium quota "more on important things".
 
-## What it does
+## The what-ran-where manifest (real output)
+
+```
+$ usage-splitter run --config examples/sample_config.json \
+    --manifest m.json --executor ollama@spare-laptop --output-dir out/
+manifest written: m.json
+  offloaded-executed: 4
+  offloaded-pending : 0
+  kept on premium   : 2
+  savings est       : 25,000 tokens ($0.375)
+```
+
+The manifest is the audit trail — every task, its stakes tier, where it
+ran, and what premium review it needs (verbatim entries from the command
+above):
+
+```
+[
+ {"task_id": "T1",
+  "description": "Write unit tests for the retry helper",
+  "tier": "low",  "destination": "local",
+  "status": "offloaded", "executor": "ollama@spare-laptop",
+  "output_path": "out/T1.out.md", "review_required": true},
+ {"task_id": "T3",
+  "description": "Review the auth permission checks in the login flow",
+  "tier": "high", "destination": "premium",
+  "status": "kept-premium", "executor": null,
+  "review_required": false},
+ ...
+]
+```
+
+Auth and the production migration stayed on the premium model; the tests,
+docs and boilerplate went to the spare laptop. That split is the product.
+
+## The four commands
 
 1. **`plan`** — classifies a queued task list into stakes tiers from named,
    ordered rules in your config (keywords, path globs; first match wins;
    unmatched tasks fall to an explicit `default_tier`). Every task shows
    which rule fired.
-2. **`run`** — records the offload manifest: what ran where, at what status.
-   With `--executor` it records tasks as offloaded; without one it records
-   them as **pending — recorded, not executed, not pretended**.
+2. **`run`** — records the offload manifest: what ran where, at what
+   status. With `--executor` it records tasks as offloaded; without one it
+   records them as **pending — recorded, not executed, not pretended**.
 3. **`merge`** — the merge-back packet for premium-model review: what to
    review, from where, the checklist, and which outputs are still missing.
    Missing outputs are never fabricated.
 4. **`report`** — quota saved vs baseline, from the manifest, with the
    arithmetic printed and labelled as an estimate from your own token
-   estimates — not vendor metering (v0.1 never touches vendor APIs; there is
-   nothing to scrape and no credentials to hold).
+   estimates — not vendor metering (v0.1 never touches vendor APIs; there
+   is nothing to scrape and no credentials to hold).
 
 ## Usage
 
@@ -41,7 +77,7 @@ quota: 1,450,000 / 2,000,000 tokens used (72%), 550,000 remaining
 |---|---|---|---|---|
 | T1 | low | local | mechanical-tests | 12,000 |
 | T3 | high | premium | security-and-auth | 18,000 |
-...
+| T5 | high | premium | data-migrations | 22,000 |
 
 ## Estimated quota saved by the split (estimate, from your own token estimates)
 
@@ -95,6 +131,15 @@ stays on the premium model).
   local model.
 - `main` never leaks a traceback: bad config renders as
   `usage-splitter: <message>`, exit 2.
+
+## Install
+
+```
+pip install -e ".[dev]"
+pytest -q
+```
+
+Python 3.11+, zero runtime dependencies.
 
 ## Scope and limitations
 
